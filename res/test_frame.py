@@ -30,5 +30,6 @@ class TestFrame(unittest.TestCase):
         print(Frame.ucb1(10, 4, 3.0))
         print(Frame.ucb1(10, 4, 3.0))
 
-if  __name__ == '__main__':
-    unittest.main()
+
+
+unittest.main()
