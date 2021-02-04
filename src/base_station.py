@@ -1,0 +1,2 @@
+class BaseStation:
+  pass
