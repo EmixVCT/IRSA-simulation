@@ -1,4 +1,4 @@
-from random import uniform, shuffle
+from random import uniform
 from collections import defaultdict
 import numpy
 import math
@@ -111,8 +111,8 @@ class Trame:
 
 ''' Fonctions '''
 
-def get_poisson_distribution(equipment_count: int, lam: float):
-  #decide with poisson distribution how many packets an equipment is going to send
+def get_poisson_distribution(equipment_count, lam):
+  #decide avec la loi de poisson combien de packet un équipement envoie
   packets_count = dict()
 
   for e in range(equipment_count):
@@ -121,71 +121,60 @@ def get_poisson_distribution(equipment_count: int, lam: float):
   return packets_count
 
 
-def play_strategie(n: int, equipment_count: int, frame_count: int, lam: float):
-  packet_send = defaultdict(bool)
-  all_rewards = list()
+def exec_strategie(n, nbEquipement, nbTrames, _lambda):
+  packetEnvoyer = defaultdict(bool)
+  recompences = list()
 
-  packets_count = get_poisson_distribution(equipment_count, lam)
+  nbPackets = get_poisson_distribution(nbEquipement, _lambda)
 
-  # For each trame we'll send packets, and receive rewards
-  for f in range(frame_count):
+  #Pour chaque trame on envoi un packet et on recoit une recompense
+  for i in range(nbTrames):
     trame = Trame()
 
-    # For each equipment we send k copies of packets
-    for e in range(equipment_count):
-      if packets_count[e] != 0:
-        trame.add_packet(Packet(e, e), n)
-        packets_count[e] -= 1
-        packet_send[e] = True
+    #Pour chaque equipement on envoie k copie des packets
+    for equip in range(nbEquipement):
+      if nbPackets[equip] != 0:
+        trame.add_packet(Packet(equip, equip), n)
+        nbPackets[equip] -= 1
+        packetEnvoyer[equip] = True
 
-    rewards = trame.self_interference_cancellation()
+    recompence = trame.self_interference_cancellation()
 
-    # Add the LOW REWARD for the equipments who did not receive their
-    # rewards
-    for e in range(equipment_count):
-      if packet_send[e] and e not in rewards:
-        rewards[e] = LOW_REWARD
+    # Ajoute LOW REWARD pour les equipements aillant pas reçu de recompence
+    for equip in range(nbEquipement):
+      if packetEnvoyer[equip] and equip not in recompence:
+        recompence[equip] = LOW_REWARD
 
-    for reward in rewards.values():
-      all_rewards.append(reward)
+    for reward in recompence.values():
+      recompences.append(reward)
 
-  if (sum(all_rewards) == 0):
+  if (sum(recompences) == 0):
       return 0
   else:
-      return sum(all_rewards) / len(all_rewards)# + math.sqrt(2 * (math.log(n, math.e) / repetitions))
+      return sum(recompences) / len(recompences)
+    
 
+def ucb1(nbEquipement, nbTrames, _lambda):
+  #Renvoie le nombre de copie qu'un équipement envoie par trame qui MAXIMISE une formule
+  
+  cycles = 1000
+  valeurs = [2, 3, 4]
+  cyclesVal = valeurs * cycles
+  recompences = defaultdict(list)
 
-def ucb1(equipment_count: int, frame_count: int, lam: float):
-  """
-  Returns the strategy which maximises a certain formulae
-  """
-  repeat = 1000
-  values = [2, 3, 4] * repeat
-  plays = repeat * 3
-  shuffle(values)
-  rewards_per_play = defaultdict(list)
-  to_maximise = dict()
+  #Execute chaque strategie
+  for k in cyclesVal:
+    recompences[k].append(exec_strategie(k, nbEquipement, nbTrames, _lambda))
+  
+  res = dict()
+  for k in valeurs:
+    res[k] = sum(recompences[k]) / cycles + math.sqrt(2 * (math.log(cycles*3, math.e) / cycles))
 
-  # Play each strategy
-  for k in values:
-    rewards_per_play[k].append(play_strategie(k, equipment_count, frame_count, lam))
-
-  for k in [2, 3, 4]:
-    to_maximise[k] = sum(rewards_per_play[k]) / repeat + math.sqrt(2 * (math.log(plays, math.e) / repeat))
-
-  return max(to_maximise, key=to_maximise.get)
+  return max(res, key=res.get)
 
 
 
 ''' main '''
-
-'''
-#pas besoin de station
-id_packet = 'b'
-content = "u"
-copies_count=3
-trame.add_packet(Packet(id_packet, content), copies_count)
-'''
 
 trame = Trame()
 trame.slots[0].append(Packet('a', 'a'))
