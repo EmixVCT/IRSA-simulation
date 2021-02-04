@@ -9,7 +9,7 @@ frame = Frame()
 
 station1 = Station(1)
 station2 = Station(2)
-station1.send_packet(frame, 1, "bonsoir", 5)
+station1.send_packet(frame, "a", "bonsoir", 5)
 station2.send_packet(frame, 2, "bonjour", 10)
 
 
