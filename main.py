@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 from random import uniform
 from collections import defaultdict
 import numpy
@@ -28,25 +30,21 @@ class Packet:
 class Trame:
   """A trame is a set of sloat"""
   def __init__(self):
-    self.slots = list()
-    for i in range(0, SLOTS_COUNT):
-      self.slots.append(list())
+    self.slots = [[] for i in range(SLOTS_COUNT)]
 
-  def add_packet(self, packet, copies_count):
+  def addPacket(self, packet, nCopies):
     """
+    Ajout a la trame un packet * nCopies
     Add multiple copies of a packet in the slots of the trame
-    @param packet: the packet to add
-    @param copies_count: the number of copies to add
     """
-    # Check if copies count is not upper than slots count
-    if (copies_count <= SLOTS_COUNT):
-      for i in range(0, copies_count):          
-        slot_index = int(uniform(0, SLOTS_COUNT))
-        while (packet in self.slots[slot_index]):
-          slot_index = int(uniform(0, SLOTS_COUNT))  # Get randomly a slot index
-        self.slots[slot_index].append(packet)
+    if (nCopies <= SLOTS_COUNT):
+      for i in range(0, nCopies):          
+        slotID = int(uniform(0, SLOTS_COUNT))
+        while (packet in self.slots[slotID]):
+          slotID = int(uniform(0, SLOTS_COUNT))  # Get randomly a slot index
+        self.slots[slotID].append(packet)
     else:
-      print("Too much copies.")
+      print("Err Trame.addPacket : nCopies trop grand")
 
   def __str__(self):
     s = ""
@@ -58,61 +56,53 @@ class Trame:
     return s
 
 
-  def self_interference_cancellation(self):
+  def rewardIteration(self):
     """
-    Removes duplicated packets and deduce rewards
-    Check consts.py for rewards values
+    Calcule la reward pour l'iteration
     """
 
-    equipments_rewards = defaultdict(float)
-    first_packets_known = []
-    new_slots = list()
+    equipementRewards = defaultdict(float)
+    duplicatas = []
+    newSlots = list()
 
     for i in range(0, SLOTS_COUNT):
-      new_slots.append(list())
+      newSlots.append(list())
 
-    # Check which packets have high rewards
-    # those packets are alone in a slot
+    # packet unique => HIGHT REWARD
     for i in range(SLOTS_COUNT):
       if len(self.slots[i]) == 1:
         packet = self.slots[i][0]
-        if packet not in first_packets_known:
-          equipments_rewards[packet.packetId] = HIGH_REWARD
-          first_packets_known.append(packet)
-          new_slots[i].append(packet)
-
-    # delete the packets with high rewards
-    for j in range(len(self.slots)):
-      for packet in first_packets_known:
-        if packet in self.slots[j]:
-          self.slots[j].remove(packet)
+        if packet not in duplicatas:
+          equipementRewards[packet.packetId] = HIGH_REWARD
+          self.slots[i].remove(packet)
+          newSlots[i].append(packet)
 
     i = 0
 
-    # check which packets have medium rewards
-    # each time we remove a packet, there's probably another collision
-    # that's been removed, thus we restart from 0
+    # On cherche les packets a MEDIUM REWARD
     while i != len(self.slots):
       if len(self.slots[i]) == 1:
         packet = self.slots[i][0]
-        equipments_rewards[packet.packetId] = MEDIUM_REWARD
-        new_slots[i].append(packet)
+        equipementRewards[packet.packetId] = MEDIUM_REWARD
+        newSlots[i].append(packet)
 
         for j in range(len(self.slots)):
           if packet in self.slots[j]:
             self.slots[j].remove(packet)
+            # en supprimant un packet on peut creer des conflits
+            # => on recommence à 0
             i = 0
       i += 1
 
-    self.slots = new_slots
+    self.slots = newSlots
 
-    return equipments_rewards
+    return equipementRewards
 
 
 ''' Fonctions '''
 
 def get_poisson_distribution(equipment_count, lam):
-  #decide avec la loi de poisson combien de packet un équipement envoie
+  #decide avec la loi de poisson combien de packet un equipement envoie
   packets_count = dict()
 
   for e in range(equipment_count):
@@ -134,11 +124,11 @@ def exec_strategie(n, nbEquipement, nbTrames, _lambda):
     #Pour chaque equipement on envoie k copie des packets
     for equip in range(nbEquipement):
       if nbPackets[equip] != 0:
-        trame.add_packet(Packet(equip, equip), n)
+        trame.addPacket(Packet(equip, equip), n)
         nbPackets[equip] -= 1
         packetEnvoyer[equip] = True
 
-    recompence = trame.self_interference_cancellation()
+    recompence = trame.rewardIteration()
 
     # Ajoute LOW REWARD pour les equipements aillant pas reçu de recompence
     for equip in range(nbEquipement):
@@ -171,7 +161,8 @@ def ucb1(nbEquipement, nbTrames, _lambda):
     res[k] = sum(recompences[k]) / cycles + math.sqrt(2 * (math.log(cycles*3, math.e) / cycles))
 
   return max(res, key=res.get)
-
+
+
 
 
 ''' main '''
@@ -183,7 +174,7 @@ trame.slots[1].append(Packet('b', 'b'))
 trame.slots[1].append(Packet('c', 'c'))
 trame.slots[2].append(Packet('c', 'c'))
 
-rewards = trame.self_interference_cancellation()
+rewards = trame.rewardIteration()
 print(rewards['a'],end=" ")
 print(HIGH_REWARD)
 print(rewards['c'],end=" ")
