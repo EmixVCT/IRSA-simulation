@@ -8,7 +8,7 @@ set yrange [0:5]
 
 set key left top
 
-set title "Titre du graph"
+set title "Stratégie optimale trouvée en fonction de la variation de ".xlabel_." avec l'algorithme UCB1"
 
 set xlabel xlabel_
 set ylabel ylabel_

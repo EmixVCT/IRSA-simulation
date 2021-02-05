@@ -16,9 +16,9 @@ for loop in ${BENCH_ITERATIONS[*]}; do
 
   for i in $( eval echo \${val_${loop}[*]}); do
 
-    ndevices=${val_ndevices[ $(( ${#val_ndevices[*]} / 2 )) ]}
-    ntrames=${val_ntrames[ $(( ${#val_ntrames[*]} / 2 )) ]}
-    lambda=${val_lambda[ $(( ${#val_lambda[*]} / 2 )) ]}
+    ndevices=${val_ndevices[ $(( ${#val_ndevices[*]} / 4 )) ]}
+    ntrames=${val_ntrames[ $(( ${#val_ntrames[*]} / 4 )) ]}
+    lambda=${val_lambda[ $(( ${#val_lambda[*]} / 4 )) ]}
 
     eval "$loop"=$i
 
