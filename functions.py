@@ -66,3 +66,13 @@ def ucb1(nbEquipement, nbTrames, _lambda):
 		res[k] = sum(recompences[k]) / cycles + math.sqrt(2 * (math.log(cycles*3, math.e) / cycles))
 
 	return max(res, key=res.get)
+
+
+def getvar(varname, n_equipement, n_trames, _lambda):
+	var = {
+		'ndevices'	: n_equipement,
+		'ntrames'	: n_trames,
+		'lambda'	: _lambda
+	}
+
+	return var.get(varname)
