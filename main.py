@@ -28,15 +28,13 @@ class Packet:
 
 
 class Trame:
-	"""A trame is a set of sloat"""
+	#Un trame est une liste de slots
 	def __init__(self):
 		self.slots = [[] for i in range(SLOTS_COUNT)]
 
 	def addPacket(self, packet, nCopies):
-		"""
-		Ajout a la trame un packet * nCopies
-		Add multiple copies of a packet in the slots of the trame
-		"""
+		#Ajout a la trame un packet * nCopies
+
 		if (nCopies <= SLOTS_COUNT):
 			for i in range(0, nCopies):          
 				slotID = int(uniform(0, SLOTS_COUNT))
@@ -57,9 +55,8 @@ class Trame:
 
 
 	def rewardIteration(self):
-		"""
-		Calcule la reward pour l'iteration
-		"""
+		#Calcule la recompence pour l'iteration
+
 
 		equipementRewards = defaultdict(float)
 		duplicatas = []
